@@ -20,26 +20,11 @@ class RentPE:
         self.cookies = res.cookies
 
     def login(self):
-        # check if already logined
-        if self.logined:
-            # session state is logined
-            # check if token is still valid
-            if self.check_logined():
-                # token is still valid
-                logging.info("Already logined!")
-                return True
-            else:
-                # token is invalid
-                # re-login
-                logging.info("Token is invalid. Re-login...")
-                self.logined = False
-
         # get login cookies first
         self.get_login_cookies()
 
-        # login to SSO if not
-        if not self.SSO.logined:
-            self.SSO.login()
+        # Force re-login to NTU SSO
+        self.SSO.login()
 
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.5666.197 Safari/537.36",
@@ -81,7 +66,12 @@ class RentPE:
             logging.info("Get logined member page successfully!")
             return memberPage
         else:
-            raise Exception("Cannot get logined member page! Check your login status.")
+            # not logined
+            logging.info("Session expired. Re-login...")
+            try:
+                self.login()
+            except:
+                raise Exception("Failed to get member page. Please check your login status.")
 
     def get_tickets(self):
         # get member page
