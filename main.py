@@ -10,6 +10,6 @@ SSO = NTUSSO(NTUID, NTUPASSWORD)
 RentPE = RentPE(SSO)
 RentPE.login()
 
-tickets = RentPE.tickets()
+tickets = RentPE.get_tickets()
 
 tickets[0].get_qr_sn()

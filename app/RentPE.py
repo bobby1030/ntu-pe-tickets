@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup as bs
 
 from app.Ticket import Ticket
 
+
 # NTU PE Rental System
 class RentPE:
     def __init__(self, NTUSSO, fakeID=False) -> None:
@@ -58,7 +59,7 @@ class RentPE:
         else:
             raise Exception("Cannot get logined member page! Check your login status.")
 
-    def tickets(self):
+    def get_tickets(self):
         # get member page
         memberPage = bs(self.memberPage().text, "html.parser")
 

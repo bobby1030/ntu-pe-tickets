@@ -1,6 +1,7 @@
 import urllib.parse as parse
 from bs4 import BeautifulSoup as bs
 
+
 class Ticket:
     def __init__(self, soup, session) -> None:
         self.session = session
