@@ -41,6 +41,8 @@ class RentPE:
             print("Login to rent.pe.ntu.edu.tw successfully!")
             self.logined = True
             self.login_response = res
+
+            return True
         else:
             raise Exception(
                 "Login to rent.pe.ntu.edu.tw failed! Check your username and password."
