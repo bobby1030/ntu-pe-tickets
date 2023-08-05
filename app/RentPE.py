@@ -1,7 +1,7 @@
 import requests as req
 from bs4 import BeautifulSoup as bs
 
-from app.Ticket import Ticket
+from .Ticket import Ticket
 
 
 # NTU PE Rental System
