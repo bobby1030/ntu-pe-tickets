@@ -1,5 +1,6 @@
 import urllib.parse as parse
 import segno
+import logging
 from bs4 import BeautifulSoup as bs
 
 
@@ -14,9 +15,12 @@ class Ticket:
         self.infos = [
             info.text for info in ticket_soup.find(class_="CI").find_all("span")
         ]
-        self.qr_token = ticket_soup.find(
-            lambda tag: "進場使用" in tag.text and tag.name == "button"
-        ).get("v")
+        # unquote here since requests would quote it again when GETing
+        self.qr_token = parse.unquote(
+            ticket_soup.find(
+                lambda tag: "進場使用" in tag.text and tag.name == "button"
+            ).get("v")
+        )
 
         return self
 
@@ -55,10 +59,13 @@ class TicketQRSN:
         res = self.session.get(self.endpoint, params={"V": self.qr_token})
         soup = bs(res.text, "html.parser")
 
-        # get real qr content
-        qr_src = soup.find(class_="QRCode").find("img").get("src")
-        qr_content = parse.parse_qs(parse.urlsplit(qr_src).query)["Q"][0]
-        self.qr_content = qr_content
+        try:
+            qr_src = soup.find("div", class_="QRCode").find("img").get("src")
+            qr_content = parse.parse_qs(parse.urlsplit(qr_src).query)["Q"][0]
+            self.qr_content = qr_content
+        except Exception as e:
+            logging.error("QR code not found")
+            raise e
 
         # get ticket serial number
         sn = soup.find(class_="TicketUseNo").text
