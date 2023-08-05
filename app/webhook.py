@@ -17,6 +17,12 @@ whitelist = config(
 host = config("WEBHOOK_HOST")
 telegram.setWebhook(f"{host}/webhook")
 
+# create login session
+NTUID = config("NTUID")
+NTUPASSWORD = config("NTUPASSWORD")
+SSO = NTUSSO(NTUID, NTUPASSWORD)
+rent = RentPE(SSO)
+
 app = Flask(__name__)
 starttime = time.time()
 
@@ -41,12 +47,6 @@ def webhook():
         if text == "/ticket":
             try:
                 telegram.sendMessage(chat_id, "Fetching tickets...")
-
-                # prepare login session
-                NTUID = config("NTUID")
-                NTUPASSWORD = config("NTUPASSWORD")
-                SSO = NTUSSO(NTUID, NTUPASSWORD)
-                rent = RentPE(SSO)
 
                 # login to rent.pe.ntu.edu.tw
                 if rent.login() == True:

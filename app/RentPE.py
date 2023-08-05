@@ -1,4 +1,5 @@
 import requests as req
+import logging
 from bs4 import BeautifulSoup as bs
 
 from .Ticket import Ticket
@@ -19,6 +20,20 @@ class RentPE:
         self.cookies = res.cookies
 
     def login(self):
+        # check if already logined
+        if self.logined:
+            # session state is logined
+            # check if token is still valid
+            if self.check_logined():
+                # token is still valid
+                logging.info("Already logined!")
+                return True
+            else:
+                # token is invalid
+                # re-login
+                logging.info("Token is invalid. Re-login...")
+                self.logined = False
+
         # get login cookies first
         self.get_login_cookies()
 
@@ -47,6 +62,13 @@ class RentPE:
             raise Exception(
                 "Login to rent.pe.ntu.edu.tw failed! Check your username and password."
             )
+
+    def check_logined(self):
+        res = self.session.get("https://rent.pe.ntu.edu.tw/member/")
+
+        # "登出" exists: Logined -> True
+        # "登出" does not exists: Not logined -> False
+        return "登出" in res.text
 
     def memberPage(self):
         # login if not
