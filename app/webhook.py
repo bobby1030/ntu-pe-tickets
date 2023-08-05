@@ -4,16 +4,18 @@ import io
 import time
 import logging
 
-from app.NTUSSO import NTUSSO
-from app.RentPE import RentPE
-from app.Telegram import Telegram
+from .NTUSSO import NTUSSO
+from .RentPE import RentPE
+from .Telegram import Telegram
 
 telegram = Telegram(config("TGBOTKEY"))
 whitelist = config(
     "TGID", cast=lambda ids: [int(id) for id in ids.split(",")]
 )  # cast to list of int
+
+# Set webhook URL
 host = config("WEBHOOK_HOST")
-port = config("WEBHOOK_PORT")
+telegram.setWebhook(f"{host}/webhook")
 
 app = Flask(__name__)
 starttime = time.time()
@@ -40,9 +42,9 @@ def webhook():
             try:
                 telegram.sendMessage(chat_id, "Fetching tickets...")
 
+                # prepare login session
                 NTUID = config("NTUID")
                 NTUPASSWORD = config("NTUPASSWORD")
-
                 SSO = NTUSSO(NTUID, NTUPASSWORD)
                 rent = RentPE(SSO)
 
@@ -56,7 +58,10 @@ def webhook():
 
                     # send all ticket types to user
                     for ticket in tickets:
-                        telegram.sendMessage(chat_id, ticket.infos)
+                        infos = "\n".join(ticket.infos)
+                        descriptions = f"[{ticket.facility}] {ticket.type} \n {infos}"
+
+                        telegram.sendMessage(chat_id, descriptions)
 
                         # write QR code to buffer and send to user
                         with io.BytesIO() as img_buffer:
@@ -65,7 +70,8 @@ def webhook():
                             telegram.sendPhoto(
                                 chat_id, img_buffer.getvalue(), ticket.sn
                             )
-            except:
+            except Exception as e:
+                logging.error(e)
                 telegram.sendMessage(chat_id, "Sorry, something went wrong.")
     else:
         telegram.sendMessage(chat_id, "Sorry, you are not allowed to use this bot.")
@@ -75,5 +81,5 @@ def webhook():
 
 # run dev server if directly run this file
 if __name__ == "__main__":
-    telegram.setWebhook(f"{host}/webhook")
+    port = config("WEBHOOK_PORT")
     app.run(port=port, debug=True)

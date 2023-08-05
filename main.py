@@ -1,15 +1,7 @@
 from decouple import config
 
-from app.NTUSSO import NTUSSO
-from app.RentPE import RentPE
+from app.webhook import app
 
-NTUID = config("NTUID")
-NTUPASSWORD = config("NTUPASSWORD")
-
-SSO = NTUSSO(NTUID, NTUPASSWORD)
-RentPE = RentPE(SSO)
-RentPE.login()
-
-tickets = RentPE.get_tickets()
-
-tickets[0].get_qr_sn()
+if __name__ == "__main__":
+    port = config("WEBHOOK_PORT")
+    app.run(port=port)
