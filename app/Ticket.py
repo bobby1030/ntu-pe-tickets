@@ -1,4 +1,5 @@
 import urllib.parse as parse
+import segno
 from bs4 import BeautifulSoup as bs
 
 
@@ -28,6 +29,12 @@ class Ticket:
             "qr_content": self.qr_content,
             "sn": self.sn,
         }
+
+    def get_qr_img(self):
+        if not hasattr(self, "qr_content"):
+            self.get_qr_sn()
+
+        return segno.make(self.qr_content, error="L", version=11)
 
     def __str__(self) -> str:
         return f"{self.facility}, {self.type}, {self.infos}, {self.qr_token}"
