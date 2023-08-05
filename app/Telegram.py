@@ -27,7 +27,7 @@ class Telegram:
         else:
             logging.error(res.json)
 
-    def sendPhoto(self, chat_id: int, photo, caption):
+    def sendPhoto(self, chat_id: int, photo, caption: str = ""):
         endpoint = f"{self.endpoint}/sendPhoto"
         data = {"chat_id": chat_id, "caption": caption}
         files = {"photo": photo}
