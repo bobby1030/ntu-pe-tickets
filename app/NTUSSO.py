@@ -1,4 +1,5 @@
 import requests as req
+import logging
 from bs4 import BeautifulSoup as bs
 
 # NTU SSO 2.0 (SAML)
@@ -43,7 +44,7 @@ class NTUSSO:
             # test if login successfully
             if "使用者名稱或密碼不正確" not in res.text:
                 # login successfully
-                print("Login to NTU SSO successfully!")
+                logging.info("Login to NTU SSO successfully!")
 
                 self.logined = True
                 self.login_response = res

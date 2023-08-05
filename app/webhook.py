@@ -32,7 +32,7 @@ def webhook():
     update = request.get_json()
     chat_id = update["message"]["chat"]["id"]
     text = update["message"]["text"]
-    print(chat_id, text)
+    logging.info(f"[RECEIVED] {chat_id}: {text}")
 
     # check if message is outdated (> 1 min before server start time)
     if update["message"]["date"] - starttime < -60:
@@ -48,6 +48,7 @@ def webhook():
             try:
                 telegram.sendMessage(chat_id, "Fetching tickets...")
 
+                fetch_start = time.time()
                 # login to rent.pe.ntu.edu.tw
                 if rent.login() == True:
                     telegram.sendMessage(
@@ -70,6 +71,9 @@ def webhook():
                             telegram.sendPhoto(
                                 chat_id, img_buffer.getvalue(), ticket.sn
                             )
+
+                    fetch_end = time.time()
+                    logging.info(f"Fetched tickets in {fetch_end - fetch_start} seconds.")
             except Exception as e:
                 logging.error(e)
                 telegram.sendMessage(chat_id, "Sorry, something went wrong.")

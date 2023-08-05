@@ -53,7 +53,7 @@ class RentPE:
         # check if login successfully
         if "帳號認證完成" in res.text:
             # success
-            print("Login to rent.pe.ntu.edu.tw successfully!")
+            logging.info("Login to rent.pe.ntu.edu.tw successfully!")
             self.logined = True
             self.login_response = res
 
@@ -78,7 +78,7 @@ class RentPE:
         memberPage = self.session.get("https://rent.pe.ntu.edu.tw/member/")
 
         if "登出" in memberPage.text:
-            print("Get logined member page successfully!")
+            logging.info("Get logined member page successfully!")
             return memberPage
         else:
             raise Exception("Cannot get logined member page! Check your login status.")
