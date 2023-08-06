@@ -1,5 +1,5 @@
 from flask import Flask, request
-from decouple import config
+from dotenv import load_dotenv
 import io
 import os
 import time
@@ -9,20 +9,20 @@ from .NTUSSO import NTUSSO
 from .RentPE import RentPE
 from .Telegram import Telegram
 
-telegram = Telegram(config("TGBOTKEY"))
-whitelist = config(
-    "TGID", cast=lambda ids: [int(id) for id in ids.split(",")]
-)  # cast to list of int
+load_dotenv()
+
+TELEGRAM = Telegram(os.environ["TGBOTKEY"])
+WHITELIST = [int(id) for id in os.environ["TGID"].split(",")]
 
 # Set webhook URL
-host = config("WEBHOOK_HOST")
-telegram.setWebhook(f"{host}/webhook")
+HOST = os.environ["WEBHOOK_HOST"]
+TELEGRAM.setWebhook(f"{HOST}/webhook")
 
 # create login session
-NTUID = config("NTUID")
-NTUPASSWORD = config("NTUPASSWORD")
+NTUID = os.environ["NTUID"]
+NTUPASSWORD = os.environ["NTUPASSWORD"]
 SSO = NTUSSO(NTUID, NTUPASSWORD)
-rent = RentPE(SSO)
+RENT = RentPE(SSO)
 
 app = Flask(__name__)
 starttime = time.time()
@@ -43,33 +43,33 @@ def webhook():
         pass
 
     # check if sender is in whitelist
-    if chat_id in whitelist:
+    if chat_id in WHITELIST:
         # check if sender is asking for tickets
         if text == "/ticket":
             try:
-                telegram.sendMessage(chat_id, "Fetching tickets...")
+                TELEGRAM.sendMessage(chat_id, "Fetching tickets...")
 
                 fetch_start = time.time()
                 # login to rent.pe.ntu.edu.tw
-                if rent.login() == True:
-                    telegram.sendMessage(
+                if RENT.login() == True:
+                    TELEGRAM.sendMessage(
                         chat_id, "Suceessfully login to rent.pe.ntu.edu.tw!"
                     )
 
-                    tickets = rent.get_tickets()
+                    tickets = RENT.get_tickets()
 
                     # send all ticket types to user
                     for ticket in tickets:
                         infos = "\n".join(ticket.infos)
                         descriptions = f"[{ticket.facility}] {ticket.type} \n {infos}"
 
-                        telegram.sendMessage(chat_id, descriptions)
+                        TELEGRAM.sendMessage(chat_id, descriptions)
 
                         # write QR code to buffer and send to user
                         with io.BytesIO() as img_buffer:
                             qr_segno = ticket.get_qr_img()
                             qr_segno.save(img_buffer, kind="png", scale=10)
-                            telegram.sendPhoto(
+                            TELEGRAM.sendPhoto(
                                 chat_id, img_buffer.getvalue(), ticket.sn
                             )
 
@@ -77,15 +77,15 @@ def webhook():
                     logging.info(f"Fetched tickets in {fetch_end - fetch_start} seconds.")
             except Exception as e:
                 logging.error(e)
-                telegram.sendMessage(chat_id, "Sorry, something went wrong.")
+                TELEGRAM.sendMessage(chat_id, "Sorry, something went wrong.")
     else:
-        telegram.sendMessage(chat_id, "Sorry, you are not allowed to use this bot.")
+        TELEGRAM.sendMessage(chat_id, "Sorry, you are not allowed to use this bot.")
 
     return "OK"
 
 
 if __name__ == "__main__":
-    port = config("WEBHOOK_PORT")
+    port = os.environ["WEBHOOK_PORT"]
     app.run(port=port, debug=True)
 elif "gunicorn" in os.environ.get("SERVER_SOFTWARE"):
     # run by gunicorn

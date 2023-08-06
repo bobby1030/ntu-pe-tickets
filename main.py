@@ -1,10 +1,12 @@
-from decouple import config
+from dotenv import load_dotenv
 import logging
 import os
 
 from app.webhook import app
 
 if __name__ == "__main__":
+    load_dotenv()
+
     # check debug mode
     DEBUG = os.environ.get("DEBUG", "0")
     if DEBUG == "1":
@@ -28,5 +30,5 @@ if __name__ == "__main__":
             force=True,
         )
 
-    port = config("WEBHOOK_PORT")
+    port = os.environ["WEBHOOK_PORT"]
     app.run(port=port, debug=DEBUG, use_reloader=False)
