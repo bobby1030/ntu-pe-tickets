@@ -1,6 +1,7 @@
 from flask import Flask, request
 from decouple import config
 import io
+import os
 import time
 import logging
 
@@ -83,7 +84,15 @@ def webhook():
     return "OK"
 
 
-# run dev server if directly run this file
 if __name__ == "__main__":
     port = config("WEBHOOK_PORT")
     app.run(port=port, debug=True)
+elif "gunicorn" in os.environ.get("SERVER_SOFTWARE"):
+    # run by gunicorn
+    gunicorn_logger = logging.getLogger("gunicorn.error")
+
+    # assign gunicorn logger to Flask and root logger
+    app.logger.handlers = gunicorn_logger.handlers  # Flask logger
+    app.logger.setLevel(gunicorn_logger.level)
+    logging.root.handlers = gunicorn_logger.handlers  # root logger
+    logging.root.setLevel(gunicorn_logger.level)
