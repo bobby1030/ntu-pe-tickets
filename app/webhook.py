@@ -85,7 +85,7 @@ def webhook():
 
 
 if __name__ == "__main__":
-    port = os.environ["WEBHOOK_PORT"]
+    port = os.environ["DEV_LISTEN_PORT"]
     app.run(port=port, debug=True)
 elif "gunicorn" in os.environ.get("SERVER_SOFTWARE"):
     # run by gunicorn
